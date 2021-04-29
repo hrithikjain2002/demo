@@ -1,0 +1,90 @@
+#include <iostream>
+#include<bits/stdc++.h>
+using namespace std;
+ 
+struct node{
+    
+    long long prefix;
+    long long suffix;
+    long long sum;
+    long long ans;
+};
+ 
+node init(long long val){
+    
+    node ret;
+    ret.prefix = max(0LL,val);
+    ret.suffix = max(0LL,val);
+    ret.sum = val;
+    ret.ans = max(0LL,val);
+    return ret;
+}
+ 
+node combine(node n1,node n2){
+    node ret;
+    ret.sum = n1.sum+n2.sum;
+    
+    ret.prefix = max(n1.prefix,n1.sum+n2.prefix);
+    ret.suffix = max(n2.suffix,n2.sum+n1.suffix);
+    ret.ans = max(n1.ans,max(n2.ans,n1.suffix+n2.prefix));
+    return ret;
+}
+ 
+void build(long long l,long long r,long long x,vector<node>& temp,vector<long long>& arr){
+    
+    if(l==r){
+        temp[x]=init(arr[l]);
+        return;
+    }
+    long long mid = (l+r)/2;
+    build(l,mid,2*x+1,temp,arr);
+    build(mid+1,r,2*x+2,temp,arr);
+    temp[x]=combine(temp[2*x+1],temp[2*x+2]);
+}
+ 
+ 
+void update(long long l,long long r,long long x,long long i,long long v,vector<node>& temp){
+    
+    if(l==r){
+        temp[x]=init(v);
+        return;
+    }
+    long long mid = (l+r)/2;
+    if(i<=mid){
+        update(l,mid,2*x+1,i,v,temp);
+    }
+    else{
+        update(mid+1,r,2*x+2,i,v,temp);
+    }
+    temp[x]=combine(temp[2*x+1],temp[2*x+2]);
+}
+ 
+int main()
+{
+    
+    long long n,m;
+    cin>>n>>m;
+    
+    vector<node> temp(n*4);
+    vector<long long> arr(n);
+    
+    for(int i=0;i<n;i++){
+        cin>>arr[i];
+    }
+    long long index,val;
+    
+    build(0,n-1,0,temp,arr);
+    cout<<temp[0].ans<<endl;
+    
+    for(int i=0;i<m;i++){
+        cin>>index>>val;
+        
+        update(0,n-1,0,index,val,temp);
+        cout<<temp[0].ans<<endl;
+    }
+    
+    
+    
+    
+    return 0;
+}
