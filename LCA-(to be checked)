@@ -1,0 +1,117 @@
+#include <iostream>
+#include<bits/stdc++.h>
+using namespace std;
+
+int count1;
+
+void dfs(vector<int>& euler,vector<int>& height,int h,int root,vector<vector<int>>& temp,vector<int>& first,vector<int>& visited){
+    
+    first[root]=count1;
+    count1++;
+    euler.push_back(root);
+    height.push_back(h);
+    visited[root]=0;
+    for(auto x: temp[root]){
+        if(visited[x]){
+            dfs(euler,height,h+1,x,temp,first,visited);
+            euler.push_back(root);
+            height.push_back(h);
+            count1++;
+        }
+    }
+}
+
+void build(int l,int r,int x,vector<int>& height,vector<int>& dp,vector<int>& euler){
+    if(l==r){
+        dp[x]=euler[l];
+        return;
+    }
+    int mid = (l+r)/2;
+    build(l,mid,2*x+1,height,dp,euler);
+    build(mid+1,r,2*x+2,height,dp,euler);
+    int l1 = dp[2*x+1];
+    int l2=dp[2*x+2];
+    dp[x]= height[l1]<height[l2]?l1:l2;
+}
+
+int query(int l,int r,int x,int i,int j,vector<int>& dp,vector<int>& height){
+    int mid = (l+r)/2;
+    
+    if(l>j || r<i){
+        return -1;
+    }
+    if(l>=i && r<=j){
+        return dp[x];
+    }
+    int left = query(l,mid,2*x+1,i,min(mid,j),dp,height);
+    int right= query(mid+1,right,2*x+2,max(mid+1,i),j,dp,height);
+    
+    if(left==-1){
+        return right;
+    }
+    if(right==-1){
+        return left;
+    }
+    return height[left]<height[right]?left:right;
+    
+    
+}
+
+int main()
+{
+    int t;
+    cin>>t;
+    int rt=1;
+    
+    while(t--){
+        count1=0;
+        
+        int n;
+        cin>>n;
+        
+        vector<vector<int>> temp(n+2);
+        vector<int> first(n+1);
+        vector<int> height;
+        vector<int> euler;
+        vector<int> visited(n+3,1);
+        vector<int> indegree(n+1,0);
+        int m;
+        int cool;
+        for(int i=1;i<=n;i++){
+            cin>>m;
+            for(int j=0;j<m;j++){
+                cin>>cool;
+                temp[i].push_back(cool);
+                indegree[cool]++;
+            }
+        }
+        int roots=0;
+        for(int i=1;i<=n;i++){
+            if(!indegree[i]){
+                roots=i;
+                break;
+            }
+        }
+        
+        dfs(euler,height,1,roots,temp,first,visited);
+        vector<int> dp((count1+1)*4);
+        build(0,count1,0,height,dp,euler);
+        int q;
+        cin>>q;
+        int u,v;
+        for(int i=0;i<q;i++){
+            cin>>u>>v;
+            u=first[u];
+            v=first[v];
+            if(u>v){
+                swap(u,v);
+            }
+            
+            cout<<"Case "<<rt<<":"<<query(0,count1,0,u,v,dp,height);
+            rt++;
+        }
+        
+    }
+
+    return 0;
+}
